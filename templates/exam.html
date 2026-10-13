@@ -1,0 +1,101 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="exam-header">
+    <div>
+        <div class="eyebrow">ASSESSMENT IN PROGRESS</div>
+        <h1>{{ attempt.title }}</h1>
+        <p>{{ attempt.student_name }} · {{ attempt.candidate_id }}</p>
+        <button type="button" class="btn secondary small" id="enter-fullscreen">Enter fullscreen</button>
+    </div>
+
+    <div
+        class="timer"
+        id="timer"
+        data-minutes="{{ attempt.duration_minutes }}">
+        --:--
+    </div>
+</div>
+
+<div class="exam-layout">
+    <aside class="question-nav">
+        <h3>Questions</h3>
+
+        <div id="nav-grid">
+            {% for q in questions %}
+            <button
+                type="button"
+                class="nav-item {{ 'answered' if q.saved_ids else '' }}"
+                data-target="q-{{ q.id }}">
+                {{ loop.index }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <p class="muted" id="save-status">
+            Answers save automatically.
+        </p>
+    </aside>
+
+    <section class="exam-questions">
+        {% for q in questions %}
+        <article
+            class="exam-question"
+            id="q-{{ q.id }}"
+            data-qid="{{ q.id }}"
+            data-kind="{{ q.kind }}">
+
+            <div class="question-top">
+                <span class="q-label">
+                    QUESTION {{ loop.index }} / {{ questions|length }}
+                </span>
+
+                <span class="status draft">
+                    {{ q.marks }} marks
+                    {% if q.kind == 'multiple' %}
+                    · Select all that apply
+                    {% endif %}
+                </span>
+            </div>
+
+            <h2>{{ q.question_text }}</h2>
+
+            <div class="exam-options">
+                {% for o in q.options %}
+                <label class="exam-option">
+                    <input
+                        type="{{ 'radio' if q.kind == 'single' else 'checkbox' }}"
+                        name="question-{{ q.id }}"
+                        value="{{ o.id }}"
+                        {% if o.id|string in q.saved_ids %}checked{% endif %}>
+
+                    <span>{{ o.option_text }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </article>
+        {% endfor %}
+
+        <button
+            type="button"
+            class="btn primary full"
+            id="submit-exam">
+            Submit assessment
+        </button>
+    </section>
+</div>
+
+<div
+    id="shadow-exam-config"
+    data-attempt-id="{{ attempt.id }}"
+    data-token="{{ token }}"
+    data-duration-minutes="{{ attempt.duration_minutes }}"
+     data-remaining-seconds="{{ remaining_seconds }}"
+     data-terminate-on-violation="{{ 'true' if attempt.terminate_on_violation else 'false' }}">
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+{% endblock %}
